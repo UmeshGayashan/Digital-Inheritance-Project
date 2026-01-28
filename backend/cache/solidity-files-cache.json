@@ -36,6 +36,42 @@
       "artifacts": [
         "DigitalInheritance"
       ]
+    },
+    "/Users/umeshgayashan/Documents/Development/Digital Inheritance Project/backend/contracts/DigitalInheritance.sol": {
+      "lastModificationDate": 1769599218312,
+      "contentHash": "88a40974fe83baa69d6547c284f8945b",
+      "sourceName": "contracts/DigitalInheritance.sol",
+      "solcConfig": {
+        "version": "0.8.24",
+        "settings": {
+          "evmVersion": "paris",
+          "optimizer": {
+            "enabled": false,
+            "runs": 200
+          },
+          "outputSelection": {
+            "*": {
+              "*": [
+                "abi",
+                "evm.bytecode",
+                "evm.deployedBytecode",
+                "evm.methodIdentifiers",
+                "metadata"
+              ],
+              "": [
+                "ast"
+              ]
+            }
+          }
+        }
+      },
+      "imports": [],
+      "versionPragmas": [
+        "^0.8.24"
+      ],
+      "artifacts": [
+        "DigitalInheritance"
+      ]
     }
   }
 }
