@@ -24,9 +24,21 @@ export default function Home() {
   const [depositAmount, setDepositAmount] = useState("");
 
   const connectWallet = async () => {
-    if (typeof window !== "undefined" && (window as any).ethereum) {
+    const getInjectedProvider = () => {
+      if (typeof window === "undefined") return null;
+      const anyWindow = window as any;
+      // Handle multiple injected providers (e.g. MetaMask + another wallet)
+      if (anyWindow.ethereum && Array.isArray(anyWindow.ethereum.providers)) {
+        const found = anyWindow.ethereum.providers.find((p: any) => p.isMetaMask) || anyWindow.ethereum.providers[0];
+        return found;
+      }
+      return anyWindow.ethereum || null;
+    };
+
+    const injected = getInjectedProvider();
+    if (injected) {
       try {
-        const _provider = new ethers.BrowserProvider((window as any).ethereum);
+        const _provider = new ethers.BrowserProvider(injected);
         const accounts = await _provider.send("eth_requestAccounts", []);
         setAccount(accounts[0]);
         setProvider(_provider);
@@ -34,7 +46,7 @@ export default function Home() {
         console.error("Connection error:", err);
       }
     } else {
-      alert("Please install MetaMask!");
+      alert("Please install MetaMask or another Ethereum wallet!");
     }
   };
 
@@ -42,6 +54,13 @@ export default function Home() {
     if (!provider) return;
     try {
       const signer = await provider.getSigner();
+
+      // Ensure there's a contract deployed at the configured address on the connected network
+      const code = await provider.getCode(CONTRACT_ADDRESS);
+      if (!code || code === "0x" || code === "0x0") {
+        throw new Error(`No contract deployed at address ${CONTRACT_ADDRESS} on the current network (code=${code})`);
+      }
+
       const _contract = new ethers.Contract(CONTRACT_ADDRESS, ABI, signer);
       setContract(_contract);
 
@@ -106,8 +125,14 @@ export default function Home() {
       fetchContractData();
       alert("Heartbeat updated!");
     } catch (err) {
-      console.error(err);
-      alert("Transaction failed");
+      console.error("Ping tx error:", err);
+      // User rejected the transaction in MetaMask (error code 4001)
+      const code = (err as any)?.code || (err as any)?.error?.code;
+      if (code === 4001) {
+        alert("Transaction cancelled by user.");
+      } else {
+        alert((err as any)?.message || "Transaction failed");
+      }
     } finally {
       setLoading(false);
     }
@@ -123,8 +148,13 @@ export default function Home() {
       setDepositAmount("");
       alert("Deposit successful!");
     } catch (err) {
-      console.error(err);
-      alert("Deposit failed");
+      console.error("Deposit tx error:", err);
+      const code = (err as any)?.code || (err as any)?.error?.code;
+      if (code === 4001) {
+        alert("Deposit cancelled by user.");
+      } else {
+        alert((err as any)?.message || "Deposit failed");
+      }
     } finally {
       setLoading(false);
     }
@@ -139,8 +169,13 @@ export default function Home() {
       fetchContractData();
       alert("Inheritance claimed!");
     } catch (err) {
-      console.error(err);
-      alert("Claim failed");
+      console.error("Claim tx error:", err);
+      const code = (err as any)?.code || (err as any)?.error?.code;
+      if (code === 4001) {
+        alert("Claim cancelled by user.");
+      } else {
+        alert((err as any)?.message || "Claim failed");
+      }
     } finally {
       setLoading(false);
     }

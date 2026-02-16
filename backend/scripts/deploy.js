@@ -1,4 +1,4 @@
-const hre = require("hardhat");
+import hre from "hardhat";
 
 async function main() {
     const [deployer, beneficiary] = await hre.ethers.getSigners();
